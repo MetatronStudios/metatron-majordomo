@@ -1,13 +1,13 @@
 ---
-name: local-llm-delegation
+name: majordomo
 description: Route simple, bounded work from capable agents to a configured local LLM when it is available.
 metadata:
   short-description: Delegate simple work to the local LLM
 ---
 
-# Local LLM delegation
+# Majordomo local delegation
 
-Use the `local_worker` custom agent for simple, bounded work when the local backend is available and the request does not need web search, private cloud context, high-stakes judgment, or complex multi-step reasoning.
+Use the `majordomo` custom agent for simple, bounded work when the local backend is available and the request does not need web search, private cloud context, high-stakes judgment, or complex multi-step reasoning.
 
 Good candidates include small read-only scans, extracting or transforming supplied text, straightforward formatting, simple test-data generation, and narrowly scoped code exploration. Keep the parent agent responsible for interpretation, permissions, final edits, validation, and external side effects.
 

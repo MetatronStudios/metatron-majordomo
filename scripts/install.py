@@ -8,8 +8,8 @@ import platform
 import shutil
 from pathlib import Path
 
-MARKER = "# BEGIN metatron-local-llm-delegation"
-END_MARKER = "# END metatron-local-llm-delegation"
+MARKER = "# BEGIN metatron-majordomo"
+END_MARKER = "# END metatron-majordomo"
 
 
 def codex_home() -> Path:
@@ -55,9 +55,20 @@ def main() -> int:
 
     root = Path(__file__).resolve().parents[1]
     home = codex_home()
-    skill_dst = home / "skills" / "local-llm-delegation"
-    agent_dst = home / "agents" / "local-worker.toml"
-    hook_dst = home / "hooks" / "local-llm-status.py"
+    legacy_skill = home / "skills" / "local-llm-delegation"
+    legacy_agent = home / "agents" / "local-worker.toml"
+    legacy_hook = home / "hooks" / "local-llm-status.ps1"
+    if legacy_skill.is_dir() and (legacy_skill / "SKILL.md").exists():
+        if "name: local-llm-delegation" in (legacy_skill / "SKILL.md").read_text(encoding="utf-8"):
+            shutil.rmtree(legacy_skill)
+    if legacy_agent.is_file() and 'name = "local_worker"' in legacy_agent.read_text(encoding="utf-8"):
+        legacy_agent.unlink()
+    if legacy_hook.is_file() and "Local LLM worker" in legacy_hook.read_text(encoding="utf-8"):
+        legacy_hook.unlink()
+
+    skill_dst = home / "skills" / "majordomo"
+    agent_dst = home / "agents" / "majordomo.toml"
+    hook_dst = home / "hooks" / "majordomo-status.py"
 
     if skill_dst.exists():
         shutil.rmtree(skill_dst)
@@ -65,18 +76,18 @@ def main() -> int:
     agent_dst.parent.mkdir(parents=True, exist_ok=True)
     provider = "metatron_local" if args.base_url else args.provider
     agent_dst.write_text(
-        replace_tokens((root / "templates" / "local-worker.toml").read_text(encoding="utf-8"), provider, args.model),
+    replace_tokens((root / "templates" / "majordomo.toml").read_text(encoding="utf-8"), provider, args.model),
         encoding="utf-8",
     )
     hook_dst.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(root / "scripts" / "local-llm-status.py", hook_dst)
+    shutil.copy2(root / "scripts" / "majordomo-status.py", hook_dst)
 
     command = f'python3 "{hook_dst}"'
     if platform.system() == "Windows":
         command = f'py -3 "{hook_dst}"'
     config = home / "config.toml"
     add_hook(config, command, provider, args.base_url)
-    print(f"Installed local_worker using {args.model} ({provider}) into {home}")
+    print(f"Installed Majordomo using {args.model} ({provider}) into {home}")
     return 0
 
 

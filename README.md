@@ -10,8 +10,8 @@ MIT-licensed by Metatron.
 
 ## What it installs
 
-- `local-llm-delegation` skill for delegation rules and safety boundaries.
-- `local_worker` custom Codex agent with a configurable model and provider.
+- `majordomo` skill for delegation rules and safety boundaries.
+- `majordomo` custom Codex agent with a configurable model and provider.
 - A session-start health hook that tells Codex whether the local backend is available.
 
 The installer writes only under the current user's Codex directory. It does not replace the primary model or route every task locally.
@@ -48,7 +48,7 @@ The installer is idempotent and preserves unrelated Codex configuration. Restart
 
 ## How delegation works
 
-The skill gives the parent model a narrow policy: delegate only small, reversible, low-risk work; keep secrets, web research, high-stakes judgment, destructive actions, and final validation with the parent. The parent explicitly spawns `local_worker` when appropriate.
+The skill gives the parent model a narrow policy: delegate only small, reversible, low-risk work; keep secrets, web research, high-stakes judgment, destructive actions, and final validation with the parent. The parent explicitly spawns `majordomo` when appropriate.
 
 The health hook is informational and fails open. If the backend is down or the selected model is missing, the parent continues normally.
 
@@ -69,8 +69,8 @@ For a custom provider URL, the installer adds a `metatron_local` provider entry 
 
 Remove these installed paths from your Codex home:
 
-- `skills/local-llm-delegation`
-- `agents/local-worker.toml`
-- `hooks/local-llm-status.py`
+- `skills/majordomo`
+- `agents/majordomo.toml`
+- `hooks/majordomo-status.py`
 
-Then remove the marked `metatron-local-llm-delegation` hook block from `config.toml`. The installer never removes a model from your local backend.
+Then remove the marked `metatron-majordomo` hook block from `config.toml`. The installer never removes a model from your local backend.

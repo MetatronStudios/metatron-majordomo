@@ -1,4 +1,4 @@
-name = "local_worker"
+name = "majordomo"
 description = "Local model worker for simple, bounded tasks that do not need web search or high-stakes judgment."
 model_provider = "{{MODEL_PROVIDER}}"
 model = "{{MODEL}}"

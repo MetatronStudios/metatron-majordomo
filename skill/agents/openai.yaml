@@ -1,4 +1,4 @@
 interface:
-  display_name: Local LLM Delegation
+  display_name: Metatron Majordomo
   short_description: Send simple bounded work to a local model
-  default_prompt: Use local_worker for simple, bounded work when the configured backend is available.
+  default_prompt: Use majordomo for simple, bounded work when the configured backend is available.
