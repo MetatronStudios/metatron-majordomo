@@ -1,6 +1,6 @@
 # Metatron Majordomo
 
-![Metatron Majordomo](logo.png)
+![Metatron Majordomo mascot](logo.png)
 
 A small in-house worker for Codex.
 
