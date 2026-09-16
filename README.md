@@ -1,4 +1,8 @@
-# Metatron Local LLM Delegation
+# Metatron Majordomo
+
+![Metatron Majordomo](logo.png)
+
+A small in-house worker for Codex.
 
 A small, cross-platform Codex skill and custom agent for sending simple, bounded work to a local LLM. It is designed for Sol, Astra, and other capable parent agents that should keep complex reasoning and final validation while reducing cloud-model usage for routine work.
 
