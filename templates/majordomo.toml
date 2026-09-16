@@ -2,7 +2,9 @@ name = "majordomo"
 description = "Local model worker for simple, bounded tasks that do not need web search or high-stakes judgment."
 model_provider = "{{MODEL_PROVIDER}}"
 model = "{{MODEL}}"
-model_reasoning_effort = "low"
+# Keep the worker's output compatible with non-reasoning Ollama models such as
+# Gemma while avoiding wasted reasoning tokens on simple delegated tasks.
+model_reasoning_effort = "none"
 sandbox_mode = "workspace-write"
 developer_instructions = """
 Handle only the small, explicit task provided by the parent agent.

@@ -10,6 +10,8 @@ from pathlib import Path
 
 MARKER = "# BEGIN metatron-majordomo"
 END_MARKER = "# END metatron-majordomo"
+PROVIDER_MARKER = "# BEGIN metatron-majordomo-provider"
+PROVIDER_END_MARKER = "# END metatron-majordomo-provider"
 
 
 def codex_home() -> Path:
@@ -41,7 +43,9 @@ additionalContextLimit = 1000
 {END_MARKER}
 """
     if base_url:
-        block += f"\n[model_providers.metatron_local]\nname = \"Metatron local backend\"\nbase_url = \"{base_url}\"\nwire_api = \"responses\"\n"
+        if PROVIDER_MARKER in existing:
+            existing = existing[: existing.index(PROVIDER_MARKER)].rstrip() + "\n"
+        block += f"\n{PROVIDER_MARKER}\n[model_providers.metatron_local]\nname = \"Metatron Ollama backend\"\nbase_url = \"{base_url}\"\nwire_api = \"responses\"\n{PROVIDER_END_MARKER}\n"
     config.parent.mkdir(parents=True, exist_ok=True)
     config.write_text(existing.rstrip() + "\n\n" + block, encoding="utf-8")
 
@@ -52,6 +56,13 @@ def main() -> int:
     parser.add_argument("--provider", default=os.environ.get("METATRON_LOCAL_PROVIDER", "ollama"))
     parser.add_argument("--base-url", default=os.environ.get("METATRON_LOCAL_BASE_URL", ""))
     args = parser.parse_args()
+
+    # Ollama exposes its Codex-compatible Responses API under /v1. Using a
+    # named provider avoids Codex's built-in OSS model-discovery path, which
+    # is not consistent across Codex and Ollama versions.
+    base_url = args.base_url
+    if args.provider == "ollama" and not base_url:
+        base_url = "http://127.0.0.1:11434/v1"
 
     root = Path(__file__).resolve().parents[1]
     home = codex_home()
@@ -69,24 +80,26 @@ def main() -> int:
     skill_dst = home / "skills" / "majordomo"
     agent_dst = home / "agents" / "majordomo.toml"
     hook_dst = home / "hooks" / "majordomo-status.py"
+    runner_dst = home / "hooks" / "majordomo-run.py"
 
     if skill_dst.exists():
         shutil.rmtree(skill_dst)
     shutil.copytree(root / "skill", skill_dst)
     agent_dst.parent.mkdir(parents=True, exist_ok=True)
-    provider = "metatron_local" if args.base_url else args.provider
+    provider = "metatron_local" if base_url else args.provider
     agent_dst.write_text(
     replace_tokens((root / "templates" / "majordomo.toml").read_text(encoding="utf-8"), provider, args.model),
         encoding="utf-8",
     )
     hook_dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(root / "scripts" / "majordomo-status.py", hook_dst)
+    shutil.copy2(root / "scripts" / "majordomo-run.py", runner_dst)
 
     command = f'python3 "{hook_dst}"'
     if platform.system() == "Windows":
         command = f'py -3 "{hook_dst}"'
     config = home / "config.toml"
-    add_hook(config, command, provider, args.base_url)
+    add_hook(config, command, provider, base_url)
     print(f"Installed Majordomo using {args.model} ({provider}) into {home}")
     return 0
 
