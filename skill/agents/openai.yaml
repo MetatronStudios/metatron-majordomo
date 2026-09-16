@@ -1,0 +1,4 @@
+interface:
+  display_name: Local LLM Delegation
+  short_description: Send simple bounded work to a local model
+  default_prompt: Use local_worker for simple, bounded work when the configured backend is available.
