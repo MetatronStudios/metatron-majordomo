@@ -43,7 +43,7 @@ def main() -> int:
     if any(value not in agent_text for value in required):
         print("FAIL: Majordomo agent is not configured for metatron_local")
         return 1
-    if "MUST" not in skill_text or "delegate the task to `majordomo`" not in skill_text:
+    if "MUST" not in skill_text or "delegate the task through the Majordomo runtime" not in skill_text:
         print("FAIL: Majordomo skill does not require delegation for bounded work")
         return 1
     if "base_url = \"http://127.0.0.1:11434/v1\"" not in config_text:

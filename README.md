@@ -74,9 +74,11 @@ prompt is in `tests/chatgpt-delegation-test.md`.
 ## How delegation works
 
 The skill gives the parent model a narrow policy: simple, bounded, low-risk
-work must be delegated to `majordomo`; keep secrets, web research, high-stakes
-judgment, destructive actions, and final validation with the parent. The skill
-also requires the parent to state when delegation occurred so it is auditable.
+work must be delegated through Majordomo; keep secrets, web research,
+high-stakes judgment, destructive actions, and final validation with the
+parent. Text-only work uses the native Ollama runner first, because a Codex
+account may reject arbitrary Ollama tags as custom-agent models. The skill also
+requires the parent to state when delegation occurred so it is auditable.
 
 The health hook is informational and fails open. If the backend is down or the selected model is missing, the parent continues normally.
 

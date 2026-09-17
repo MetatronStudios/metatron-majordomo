@@ -1,4 +1,4 @@
 interface:
   display_name: Metatron Majordomo
   short_description: Send simple bounded work to a local model
-  default_prompt: Use majordomo for simple, bounded work when the configured backend is available.
+  default_prompt: Use the native Majordomo Ollama runner first for simple, bounded text-only work; use the custom agent only when Codex accepts the configured local provider.
