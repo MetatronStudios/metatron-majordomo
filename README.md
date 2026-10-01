@@ -11,7 +11,8 @@ MIT-licensed by Metatron.
 ## What it installs
 
 - `majordomo` skill for delegation rules and safety boundaries.
-- `majordomo` custom Codex agent with a configurable model and provider.
+- Native Ollama runner for text-only delegation using any local model tag.
+- Optional `majordomo` custom Codex agent for runtimes that accept local provider models.
 - A session-start health hook that tells Codex whether the local backend is available.
 - A native Ollama runner for simple text-only delegation when a Codex release cannot run custom local agents reliably.
 
@@ -36,6 +37,11 @@ Windows PowerShell:
 ```powershell
 .\scripts\install.ps1 -Model qwen3.5:9b
 ```
+
+The default installation uses the native Ollama runner and does not register a
+Codex custom agent, because account-backed runtimes may reject arbitrary local
+model tags. To additionally register the custom agent on a compatible local
+Codex runtime, use `--with-custom-agent` on any platform.
 
 To use another local model, rerun with its exact local tag, for example `--model llama3.2:3b` or `-Model mistral:7b`. The provider can be selected with `--provider` / `-Provider` (`ollama`, `lmstudio`, or a custom Codex provider id).
 
@@ -113,7 +119,7 @@ For a custom provider URL, the installer adds a `metatron_local` provider entry 
 Remove these installed paths from your Codex home:
 
 - `skills/majordomo`
-- `agents/majordomo.toml`
+- `agents/majordomo.toml` (only if installed with `--with-custom-agent`)
 - `hooks/majordomo-status.py`
 - `hooks/majordomo-run.py`
 

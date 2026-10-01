@@ -55,6 +55,11 @@ def main() -> int:
     parser.add_argument("--model", default=os.environ.get("METATRON_LOCAL_MODEL", "qwen3.5:9b"))
     parser.add_argument("--provider", default=os.environ.get("METATRON_LOCAL_PROVIDER", "ollama"))
     parser.add_argument("--base-url", default=os.environ.get("METATRON_LOCAL_BASE_URL", ""))
+    parser.add_argument(
+        "--with-custom-agent",
+        action="store_true",
+        help="Also install the Codex custom agent (may be rejected by account-backed runtimes)",
+    )
     args = parser.parse_args()
 
     # Ollama exposes its Codex-compatible Responses API under /v1. Using a
@@ -87,10 +92,15 @@ def main() -> int:
     shutil.copytree(root / "skill", skill_dst)
     agent_dst.parent.mkdir(parents=True, exist_ok=True)
     provider = "metatron_local" if base_url else args.provider
-    agent_dst.write_text(
-    replace_tokens((root / "templates" / "majordomo.toml").read_text(encoding="utf-8"), provider, args.model),
-        encoding="utf-8",
-    )
+    if args.with_custom_agent:
+        agent_dst.write_text(
+            replace_tokens((root / "templates" / "majordomo.toml").read_text(encoding="utf-8"), provider, args.model),
+            encoding="utf-8",
+        )
+    elif agent_dst.is_file() and 'name = "majordomo"' in agent_dst.read_text(encoding="utf-8"):
+        # Account-backed ChatGPT runtimes may reject arbitrary Ollama tags
+        # while discovering custom agents. The native runner is the default.
+        agent_dst.unlink()
     hook_dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(root / "scripts" / "majordomo-status.py", hook_dst)
     shutil.copy2(root / "scripts" / "majordomo-run.py", runner_dst)

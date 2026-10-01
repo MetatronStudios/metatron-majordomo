@@ -28,21 +28,15 @@ def main() -> int:
 
     home = default_home()
     runner = args.runner or home / "hooks" / "majordomo-run.py"
-    agent = home / "agents" / "majordomo.toml"
     skill = home / "skills" / "majordomo" / "SKILL.md"
     config = home / "config.toml"
-    missing = [str(path) for path in (runner, agent, skill, config) if not path.is_file()]
+    missing = [str(path) for path in (runner, skill, config) if not path.is_file()]
     if missing:
         print("FAIL: missing installed files: " + ", ".join(missing))
         return 1
 
-    agent_text = agent.read_text(encoding="utf-8")
     skill_text = skill.read_text(encoding="utf-8")
     config_text = config.read_text(encoding="utf-8")
-    required = ('name = "majordomo"', 'model_provider = "metatron_local"')
-    if any(value not in agent_text for value in required):
-        print("FAIL: Majordomo agent is not configured for metatron_local")
-        return 1
     if "MUST" not in skill_text or "delegate the task through the Majordomo runtime" not in skill_text:
         print("FAIL: Majordomo skill does not require delegation for bounded work")
         return 1
