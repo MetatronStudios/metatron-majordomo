@@ -7,6 +7,8 @@ import os
 import sys
 import urllib.request
 
+DEFAULT_MODEL = "qwen3.5:4b"
+
 
 def post_json(url: str, payload: dict, timeout: int) -> dict:
     request = urllib.request.Request(
@@ -54,7 +56,7 @@ def main() -> int:
         return 2
 
     base_url = os.environ.get("METATRON_LOCAL_BASE_URL", "http://127.0.0.1:11434/v1")
-    model = os.environ.get("METATRON_LOCAL_MODEL", "qwen3.5:9b")
+    model = os.environ.get("METATRON_LOCAL_MODEL", DEFAULT_MODEL)
     payload = {
         "model": model,
         "input": prompt,

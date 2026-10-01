@@ -12,6 +12,7 @@ MARKER = "# BEGIN metatron-majordomo"
 END_MARKER = "# END metatron-majordomo"
 PROVIDER_MARKER = "# BEGIN metatron-majordomo-provider"
 PROVIDER_END_MARKER = "# END metatron-majordomo-provider"
+DEFAULT_MODEL_MARKER = 'DEFAULT_MODEL = "qwen3.5:4b"'
 
 
 def codex_home() -> Path:
@@ -25,6 +26,13 @@ def codex_home() -> Path:
 
 def replace_tokens(text: str, provider: str, model: str) -> str:
     return text.replace("{{MODEL_PROVIDER}}", provider).replace("{{MODEL}}", model)
+
+
+def copy_hook(source: Path, destination: Path, model: str) -> None:
+    text = source.read_text(encoding="utf-8")
+    if DEFAULT_MODEL_MARKER not in text:
+        raise RuntimeError(f"Missing default-model marker in {source}")
+    destination.write_text(text.replace(DEFAULT_MODEL_MARKER, f"DEFAULT_MODEL = {model!r}"), encoding="utf-8")
 
 
 def add_hook(config: Path, command: str, provider: str, base_url: str) -> None:
@@ -52,7 +60,7 @@ additionalContextLimit = 1000
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default=os.environ.get("METATRON_LOCAL_MODEL", "qwen3.5:9b"))
+    parser.add_argument("--model", default=os.environ.get("METATRON_LOCAL_MODEL", "qwen3.5:4b"))
     parser.add_argument("--provider", default=os.environ.get("METATRON_LOCAL_PROVIDER", "ollama"))
     parser.add_argument("--base-url", default=os.environ.get("METATRON_LOCAL_BASE_URL", ""))
     parser.add_argument(
@@ -102,8 +110,8 @@ def main() -> int:
         # while discovering custom agents. The native runner is the default.
         agent_dst.unlink()
     hook_dst.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(root / "scripts" / "majordomo-status.py", hook_dst)
-    shutil.copy2(root / "scripts" / "majordomo-run.py", runner_dst)
+    copy_hook(root / "scripts" / "majordomo-status.py", hook_dst, args.model)
+    copy_hook(root / "scripts" / "majordomo-run.py", runner_dst, args.model)
 
     command = f'python3 "{hook_dst}"'
     if platform.system() == "Windows":

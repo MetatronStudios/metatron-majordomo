@@ -15,6 +15,7 @@ MIT-licensed by Metatron.
 - Optional `majordomo` custom Codex agent for runtimes that accept local provider models.
 - A session-start health hook that tells Codex whether the local backend is available.
 - A native Ollama runner for simple text-only delegation when a Codex release cannot run custom local agents reliably.
+- A safe evidence-handoff fallback for narrow read-only inspections such as directory listings.
 
 The installer writes only under the current user's Codex directory. It does not replace the primary model or route every task locally.
 
@@ -29,13 +30,13 @@ The installer writes only under the current user's Codex directory. It does not 
 Linux/macOS:
 
 ```sh
-./scripts/install.sh --model qwen3.5:9b
+./scripts/install.sh --model qwen3.5:4b
 ```
 
 Windows PowerShell:
 
 ```powershell
-.\scripts\install.ps1 -Model qwen3.5:9b
+py -3 scripts\install.py --model qwen3.5:4b
 ```
 
 The default installation uses the native Ollama runner and does not register a
@@ -43,13 +44,19 @@ Codex custom agent, because account-backed runtimes may reject arbitrary local
 model tags. To additionally register the custom agent on a compatible local
 Codex runtime, use `--with-custom-agent` on any platform.
 
-To use another local model, rerun with its exact local tag, for example `--model llama3.2:3b` or `-Model mistral:7b`. The provider can be selected with `--provider` / `-Provider` (`ollama`, `lmstudio`, or a custom Codex provider id).
+To use another local model, rerun with its exact local tag, for example
+`--model llama3.2:3b` or `--model mistral:7b`. The provider can be selected
+with `--provider` / `-Provider` (`ollama`, `lmstudio`, or a custom Codex provider id).
 
 For Ollama, install any model separately when desired. Use the exact tag shown by `ollama list`:
 
 ```sh
-ollama pull qwen3.5:9b
+ollama pull qwen3.5:4b
 ```
+
+The installer writes the selected model into the native runner and health hook.
+With `--with-custom-agent`, it also writes the model into the installed custom
+agent. Rerun it to change the selected model.
 
 The installer automatically creates a `metatron_local` provider for Ollama at
 `http://127.0.0.1:11434/v1`. This supports model tags such as `qwen3.5:9b`,
@@ -101,13 +108,20 @@ On Windows PowerShell:
 'Classify these labels: alpha, beta, gamma.' | py -3 "$env:USERPROFILE\.codex\hooks\majordomo-run.py"
 ```
 
+For a narrow read-only inspection, the parent may collect the minimum evidence
+with a non-mutating command and include that exact output in the runner prompt.
+The parent remains responsible for validating Majordomo's answer against the
+captured evidence. This avoids routing a local model through the ChatGPT model
+provider when a Codex release does not preserve custom providers for spawned
+agents.
+
 ## Configuration
 
 Environment variables and installer flags:
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `METATRON_LOCAL_MODEL` | `qwen3.5:9b` | Model tag written to the worker |
+| `METATRON_LOCAL_MODEL` | `qwen3.5:4b` | Model tag written to the worker |
 | `METATRON_LOCAL_PROVIDER` | `ollama` | Codex provider id |
 | `METATRON_LOCAL_BASE_URL` | Ollama `/v1` endpoint when provider is `ollama` | Optional custom provider URL |
 | `METATRON_CODEX_HOME` | platform default | Override the Codex home directory |
