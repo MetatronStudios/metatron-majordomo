@@ -36,6 +36,30 @@ Do not delegate secrets, credentials, sensitive private data, destructive action
 
 When delegating, give the worker the exact input, bounded output, file scope, and edit permission. Ask for concise evidence, file paths, and uncertainty notes. If the worker is unavailable or incomplete, continue with the parent model.
 
-Use the installed native runner for simple text-only work by piping the exact
-bounded prompt to
-`~/.codex/hooks/majordomo-run.py` (Windows: `%USERPROFILE%\\.codex\\hooks\\majordomo-run.py`). Do not use this runner for tasks that require the worker to inspect files or call tools; keep those with the parent unless the custom agent is working.
+## Delegation paths
+
+Use the installed native runner first for supplied-text tasks and narrow
+read-only inspection tasks. Pipe the exact bounded prompt to
+`~/.codex/hooks/majordomo-run.py` (Windows:
+`%USERPROFILE%\\.codex\\hooks\\majordomo-run.py`).
+
+For a narrow read-only inspection such as listing one directory, the parent may
+collect the minimum required evidence with a non-mutating command, include that
+evidence verbatim in the native-runner prompt, and ask Majordomo to produce the
+bounded result. The parent must validate the result against the captured
+evidence and must say that evidence collection was performed by the parent.
+Never pass secrets or sensitive file contents to the runner.
+
+Use the `majordomo` custom agent when the worker itself must call tools or edit
+files and the Codex runtime accepts the configured local provider. If the
+custom agent cannot start or complete, report the failed attempt and keep tool
+use or editing with the parent. Do not ask the native runner to call tools or
+pretend that it inspected files directly.
+
+## Recommended local profile
+
+Install `qwen3.5:4b` as the fast default for short, bounded, non-sensitive
+text work. The parent must validate its output. If `qwen3.5:9b` is installed,
+retry once with it for an ambiguous task, weak Hebrew output, or a failed
+validation. Do not delegate strict, machine-critical formatting to the local
+model; produce or validate it with the parent instead.

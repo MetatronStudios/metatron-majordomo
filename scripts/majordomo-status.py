@@ -5,8 +5,10 @@ import os
 import sys
 import urllib.request
 
+DEFAULT_MODEL = "qwen3.5:4b"
+
 base_url = os.environ.get("METATRON_LOCAL_BASE_URL", "http://127.0.0.1:11434")
-model = os.environ.get("METATRON_LOCAL_MODEL", "qwen3.5:9b")
+model = os.environ.get("METATRON_LOCAL_MODEL", DEFAULT_MODEL)
 tags_url = base_url.rstrip("/") + "/api/tags"
 
 try:

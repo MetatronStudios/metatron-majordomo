@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -37,13 +38,21 @@ def main() -> int:
         return 1
 
     agent_text = agent.read_text(encoding="utf-8")
+    runner_text = runner.read_text(encoding="utf-8")
     skill_text = skill.read_text(encoding="utf-8")
     config_text = config.read_text(encoding="utf-8")
     required = ('name = "majordomo"', 'model_provider = "metatron_local"')
     if any(value not in agent_text for value in required):
         print("FAIL: Majordomo agent is not configured for metatron_local")
         return 1
-    if "MUST" not in skill_text or "delegate the task through the Majordomo runtime" not in skill_text:
+    required_skill_text = (
+        "MUST",
+        "delegate the task through the Majordomo runtime",
+        "native Ollama runner first",
+        "minimum required evidence",
+        "validate the result against the captured",
+    )
+    if any(value not in skill_text for value in required_skill_text):
         print("FAIL: Majordomo skill does not require delegation for bounded work")
         return 1
     if "base_url = \"http://127.0.0.1:11434/v1\"" not in config_text:
@@ -53,7 +62,13 @@ def main() -> int:
     environment = os.environ.copy()
     if args.model:
         environment["METATRON_LOCAL_MODEL"] = args.model
-    model = environment.get("METATRON_LOCAL_MODEL", "qwen3.5:9b")
+    configured = re.search(r'^model = "([^"]+)"$', agent_text, re.MULTILINE)
+    model = environment.get("METATRON_LOCAL_MODEL", configured.group(1) if configured else "qwen3.5:4b")
+    if not args.model:
+        runner_default = re.search(r"^DEFAULT_MODEL = ['\"]([^'\"]+)['\"]$", runner_text, re.MULTILINE)
+        if not runner_default or runner_default.group(1) != model:
+            print("FAIL: native runner default does not match the configured Majordomo model")
+            return 1
     prompt = (
         "This is an integration test called by the parent ChatGPT/Codex agent. "
         "This is a bounded text-only task. Do not use tools or edit files. "
